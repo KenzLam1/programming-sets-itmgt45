@@ -66,26 +66,28 @@ def eta(first_stop, second_stop, route_map):
         return 0
 
     time = 0
-    current = first_stop
-    visited = set()  # safety against malformed input
+    current_stop = first_stop
 
-    while current != second_stop:
-        if current in visited:
-            break  # safety; route is expected to be fully enclosed
-        visited.add(current)
+    # avoid infinite loop
+    steps_taken = 0
+    max_steps = len(route_map) + 5
 
-        # find unique outgoing leg from current
-        next_leg = None
-        for (start, end), data in route_map.items():
-            if start == current:
-                next_leg = (end, data["travel_time_mins"])
+    while current_stop != second_stop and steps_taken < max_steps:
+        found_next = False
+
+        # Look for a route that starts from the current_stop
+        for start, end in route_map:
+            if start == current_stop:
+                minutes = route_map[(start, end)]["travel_time_mins"]
+                time += minutes
+                current_stop = end
+                found_next = True
                 break
 
-        if next_leg is None:
-            break  # malformed map (shouldn't happen with valid input)
+        if not found_next:
+            # stop adding time if no route found
+            break
 
-        nxt, minutes = next_leg
-        time += minutes
-        current = nxt
+        steps_taken += 1
 
     return time
